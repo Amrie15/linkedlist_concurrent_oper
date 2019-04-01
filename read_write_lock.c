@@ -164,7 +164,7 @@ int main(void) {
     int i;
     pthread_rwlock_init(&x, NULL);
     pthread_t tid[NUM_THREADS];
-
+    clock_t begin = clock();
     for (i = 0; i < NUM_THREADS; i++) {
         pthread_create(&tid[i], NULL, thread_functions, NULL);
     }
@@ -172,8 +172,12 @@ int main(void) {
     for (i = 0; i < NUM_THREADS; i++) {
         pthread_join(tid[i], NULL);
     }
+    clock_t end = clock();
+    double execution_time = (double)(end - begin) / CLOCKS_PER_SEC;
 
-    printf("%d,%d,%d", countMemberOp, countInsertOp, countDeleteOp);
+    printf("%d,%d,%d\n", countMemberOp, countInsertOp, countDeleteOp);
+    printf("%lf",execution_time);
+
 
 
     return 0;

@@ -102,7 +102,7 @@ int main() {
             i--;
         };
     }
-
+    clock_t begin = clock();
     for (int j=0;j<m ;j++){
         int randomInt = rand() % max_range;
 
@@ -120,10 +120,11 @@ int main() {
         }
 
     }
+    clock_t end = clock();
+    double execution_time = (double)(end - begin) / CLOCKS_PER_SEC;
 
-
-
-    printf("%d,%d,%d",countMemberOp,countInsertOp,countDeleteOp);
+    printf("%d,%d,%d \n",countMemberOp,countInsertOp,countDeleteOp);
+    printf("%lf",execution_time);
 
 
     return 0;
