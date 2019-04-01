@@ -145,6 +145,7 @@ int main(void) {
     mMember = 0.99;
     mInsert = 0.005;
     mDelete = 0.005;
+
     max_range = pow(2, 16);
 
     srand(time(0));
@@ -154,7 +155,6 @@ int main(void) {
             i--;
         }
     }
-
 
     int i;
     pthread_t tid[NUM_THREADS];

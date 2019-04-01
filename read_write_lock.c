@@ -164,6 +164,7 @@ int main(void) {
     int i;
     pthread_rwlock_init(&x, NULL);
     pthread_t tid[NUM_THREADS];
+
     clock_t begin = clock();
     for (i = 0; i < NUM_THREADS; i++) {
         pthread_create(&tid[i], NULL, thread_functions, NULL);
