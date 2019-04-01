@@ -15,6 +15,7 @@ int m;
 
 struct list_node_s *head = NULL;
 
+
 float mMember;
 float mInsert;
 float mDelete;
@@ -25,6 +26,7 @@ int countDeleteOp = 0;
 int Threshold = 0;
 int max_range;
 
+pthread_rwlock_t x;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 struct list_node_s {
@@ -103,35 +105,38 @@ void *thread_functions(void *arg) {
         int randomInt = rand() % max_range;
 
         if (Threshold < (mMember * m)) {
-            pthread_mutex_lock(&mutex);
-            if (Threshold < (mMember * m)) {
-                member(randomInt, head);
-                countMemberOp++;
-                Threshold++;
-            }
 
+            pthread_rwlock_rdlock(&x);
+                member(randomInt, head);
+            pthread_rwlock_unlock(&x);
+            //using a lock to ensure almost exact number of member operations are processed
+            pthread_mutex_lock(&mutex);
+            if (countMemberOp < (mMember * m)) {
+              countMemberOp++;
+              Threshold++;
+            }
             pthread_mutex_unlock(&mutex);
 
             continue;
         } else if (Threshold < ((mMember * (m)) + (mInsert * (m)))) {
-            pthread_mutex_lock(&mutex);
-            if (Threshold < ((mMember * (m)) + (mInsert * (m)))) {
+            pthread_rwlock_wrlock(&x);
+            if (countInsertOp < (mInsert * m)) {
                 insert(randomInt, &head);
                 countInsertOp++;
                 Threshold++;
             }
 
-            pthread_mutex_unlock(&mutex);
+            pthread_rwlock_unlock(&x);
 
             continue;
         } else {
-            pthread_mutex_lock(&mutex);
-            if (Threshold < m) {
+            pthread_rwlock_wrlock(&x);
+            if (countDeleteOp < (mDelete * m)) {
                 delete(randomInt, &head);
                 countDeleteOp++;
                 Threshold++;
             }
-            pthread_mutex_unlock(&mutex);
+            pthread_rwlock_unlock(&x);
 
         }
 
@@ -157,7 +162,9 @@ int main(void) {
 
 
     int i;
+    pthread_rwlock_init(&x, NULL);
     pthread_t tid[NUM_THREADS];
+
     for (i = 0; i < NUM_THREADS; i++) {
         pthread_create(&tid[i], NULL, thread_functions, NULL);
     }
