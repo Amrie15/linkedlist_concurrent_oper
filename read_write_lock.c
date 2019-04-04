@@ -8,9 +8,86 @@
 #include <math.h>
 #include <pthread.h>
 #include <sys/time.h>
-#include "operations.h"
-
 #define NUM_THREADS 4
+
+
+
+struct list_node_s {
+    int data;
+    struct list_node_s *next;
+};
+
+int member(int value, struct list_node_s *head_p) {
+    struct list_node_s *curr_p = head_p;
+
+    while (curr_p != NULL && curr_p->data < value) {
+        curr_p = curr_p->next;
+    }
+
+    if (curr_p == NULL || curr_p->data > value) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+int insert(int value, struct list_node_s **head_pp) {
+    struct list_node_s *curr_p = *head_pp;
+    struct list_node_s *pred_p = NULL;
+    struct list_node_s *temp_p = NULL;
+
+    while (curr_p != NULL && curr_p->data < value) {
+        pred_p = curr_p;
+        curr_p = curr_p->next;
+    }
+
+    if (curr_p == NULL || curr_p->data > value) {
+        temp_p = malloc(sizeof(struct list_node_s));
+        temp_p->data = value;
+        temp_p->next = curr_p;
+
+        if (pred_p == NULL) {
+            *head_pp = temp_p;
+        } else {
+            pred_p->next = temp_p;
+        }
+        return 1;
+
+    } else {
+        return 0;
+    }
+}
+
+int delete(int value, struct list_node_s **head_pp) {
+    struct list_node_s *curr_p = *head_pp;
+    struct list_node_s *pred_p = NULL;
+
+    while (curr_p != NULL && curr_p->data < value) {
+        pred_p = curr_p;
+        curr_p = curr_p->next;
+    }
+
+    if (curr_p != NULL && curr_p->data < value) {
+        if (pred_p == NULL) {
+            *head_pp = curr_p->next;
+            free(curr_p);
+        } else {
+            pred_p->next = curr_p->next;
+            free(curr_p);
+        }
+        return 1;
+
+    } else {
+        return 0;
+    }
+
+}
+
+double getExecutionTime(struct timeval time_begin, struct timeval time_end) {
+
+    return (double) (time_end.tv_usec - time_begin.tv_usec) / 1000000 + (double) (time_end.tv_sec - time_begin.tv_sec);
+}
+
 
 int n;
 int m;
@@ -77,7 +154,7 @@ void *thread_functions(void *arg) {
 int main(void) {
     n = 1000;
     m = 10000;
-    //TODO: get user input to get the percentage
+
     mMember = 0.99;
     mInsert = 0.005;
     mDelete = 0.005;
@@ -105,8 +182,10 @@ int main(void) {
         pthread_join(tid[i], NULL);
     }
     gettimeofday(&time_end, NULL);
-    printf("Execution time of r&w lock is : %.6f secs\n", CalcTime(time_begin, time_end));
-    printf("%d,%d,%d\n", countMemberOp, countInsertOp, countDeleteOp);
+//    printf("Execution time of r&w lock is : %.6f secs\n", getExecutionTime(time_begin, time_end));
+//    printf("%d,%d,%d\n", countMemberOp, countInsertOp, countDeleteOp);
+    printf("%.6f\n", getExecutionTime(time_begin, time_end));
+
 
     return 0;
 }
