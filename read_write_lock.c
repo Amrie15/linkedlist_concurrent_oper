@@ -7,11 +7,14 @@
 #include <time.h>
 #include <math.h>
 #include <pthread.h>
+#include <sys/time.h>
+#include "operations.h"
 
 #define NUM_THREADS 4
 
 int n;
 int m;
+
 
 struct list_node_s *head = NULL;
 
@@ -29,76 +32,6 @@ int max_range;
 pthread_rwlock_t x;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-struct list_node_s {
-    int data;
-    struct list_node_s *next;
-};
-
-int member(int value, struct list_node_s *head_p) {
-    struct list_node_s *curr_p = head_p;
-
-    while (curr_p != NULL && curr_p->data < value) {
-        curr_p = curr_p->next;
-    }
-
-    if (curr_p == NULL || curr_p->data > value) {
-        return 0;
-    } else {
-        return 1;
-    }
-}
-
-int insert(int value, struct list_node_s **head_pp) {
-    struct list_node_s *curr_p = *head_pp;
-    struct list_node_s *pred_p = NULL;
-    struct list_node_s *temp_p = NULL;
-
-    while (curr_p != NULL && curr_p->data < value) {
-        pred_p = curr_p;
-        curr_p = curr_p->next;
-    }
-
-    if (curr_p == NULL || curr_p->data > value) {
-        temp_p = malloc(sizeof(struct list_node_s));
-        temp_p->data = value;
-        temp_p->next = curr_p;
-
-        if (pred_p == NULL) {
-            *head_pp = temp_p;
-        } else {
-            pred_p->next = temp_p;
-        }
-        return 1;
-
-    } else {
-        return 0;
-    }
-}
-
-int delete(int value, struct list_node_s **head_pp) {
-    struct list_node_s *curr_p = *head_pp;
-    struct list_node_s *pred_p = NULL;
-
-    while (curr_p != NULL && curr_p->data < value) {
-        pred_p = curr_p;
-        curr_p = curr_p->next;
-    }
-
-    if (curr_p != NULL && curr_p->data < value) {
-        if (pred_p == NULL) {
-            *head_pp = curr_p->next;
-            free(curr_p);
-        } else {
-            pred_p->next = curr_p->next;
-            free(curr_p);
-        }
-        return 1;
-
-    } else {
-        return 0;
-    }
-
-}
 
 void *thread_functions(void *arg) {
     while (Threshold < m) {
@@ -107,7 +40,7 @@ void *thread_functions(void *arg) {
         if (Threshold < (mMember * m)) {
 
             pthread_rwlock_rdlock(&x);
-                member(randomInt, head);
+            member(randomInt, head);
             pthread_rwlock_unlock(&x);
             //using a lock to ensure almost exact number of member operations are processed
             pthread_mutex_lock(&mutex);
@@ -117,7 +50,6 @@ void *thread_functions(void *arg) {
             }
             pthread_mutex_unlock(&mutex);
 
-            continue;
         } else if (Threshold < ((mMember * (m)) + (mInsert * (m)))) {
             pthread_rwlock_wrlock(&x);
             if (countInsertOp < (mInsert * m)) {
@@ -128,7 +60,6 @@ void *thread_functions(void *arg) {
 
             pthread_rwlock_unlock(&x);
 
-            continue;
         } else {
             pthread_rwlock_wrlock(&x);
             if (countDeleteOp < (mDelete * m)) {
@@ -160,12 +91,12 @@ int main(void) {
         }
     }
 
-
+    struct timeval time_begin, time_end;
     int i;
     pthread_rwlock_init(&x, NULL);
     pthread_t tid[NUM_THREADS];
 
-    clock_t begin = clock();
+    gettimeofday(&time_begin, NULL);
     for (i = 0; i < NUM_THREADS; i++) {
         pthread_create(&tid[i], NULL, thread_functions, NULL);
     }
@@ -173,13 +104,9 @@ int main(void) {
     for (i = 0; i < NUM_THREADS; i++) {
         pthread_join(tid[i], NULL);
     }
-    clock_t end = clock();
-    double execution_time = (double)(end - begin) / CLOCKS_PER_SEC;
-
+    gettimeofday(&time_end, NULL);
+    printf("Execution time of r&w lock is : %.6f secs\n", CalcTime(time_begin, time_end));
     printf("%d,%d,%d\n", countMemberOp, countInsertOp, countDeleteOp);
-    printf("%lf",execution_time);
-
-
 
     return 0;
 }

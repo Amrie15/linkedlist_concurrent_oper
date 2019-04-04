@@ -7,6 +7,7 @@
 #include <time.h>
 #include <math.h>
 #include <pthread.h>
+#include "operations.h"
 
 #define NUM_THREADS 4
 
@@ -27,77 +28,6 @@ int max_range;
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-struct list_node_s {
-    int data;
-    struct list_node_s *next;
-};
-
-int member(int value, struct list_node_s *head_p) {
-    struct list_node_s *curr_p = head_p;
-
-    while (curr_p != NULL && curr_p->data < value) {
-        curr_p = curr_p->next;
-    }
-
-    if (curr_p == NULL || curr_p->data > value) {
-        return 0;
-    } else {
-        return 1;
-    }
-}
-
-int insert(int value, struct list_node_s **head_pp) {
-    struct list_node_s *curr_p = *head_pp;
-    struct list_node_s *pred_p = NULL;
-    struct list_node_s *temp_p = NULL;
-
-    while (curr_p != NULL && curr_p->data < value) {
-        pred_p = curr_p;
-        curr_p = curr_p->next;
-    }
-
-    if (curr_p == NULL || curr_p->data > value) {
-        temp_p = malloc(sizeof(struct list_node_s));
-        temp_p->data = value;
-        temp_p->next = curr_p;
-
-        if (pred_p == NULL) {
-            *head_pp = temp_p;
-        } else {
-            pred_p->next = temp_p;
-        }
-        return 1;
-
-    } else {
-        return 0;
-    }
-}
-
-int delete(int value, struct list_node_s **head_pp) {
-    struct list_node_s *curr_p = *head_pp;
-    struct list_node_s *pred_p = NULL;
-
-    while (curr_p != NULL && curr_p->data < value) {
-        pred_p = curr_p;
-        curr_p = curr_p->next;
-    }
-
-    if (curr_p != NULL && curr_p->data < value) {
-        if (pred_p == NULL) {
-            *head_pp = curr_p->next;
-            free(curr_p);
-        } else {
-            pred_p->next = curr_p->next;
-            free(curr_p);
-        }
-        return 1;
-
-    } else {
-        return 0;
-    }
-
-}
-
 void *thread_functions(void *arg) {
     while (Threshold < m) {
         int randomInt = rand() % max_range;
@@ -115,7 +45,7 @@ void *thread_functions(void *arg) {
             continue;
         } else if (Threshold < ((mMember * (m)) + (mInsert * (m)))) {
             pthread_mutex_lock(&mutex);
-            if (Threshold < ((mMember * (m)) + (mInsert * (m)))) {
+            if (countInsertOp < (mInsert * m)) {
                 insert(randomInt, &head);
                 countInsertOp++;
                 Threshold++;
@@ -147,6 +77,7 @@ int main(void) {
     mDelete = 0.005;
 
     max_range = pow(2, 16);
+    struct timeval time_begin, time_end;
 
     srand(time(0));
     for (int i = 0; i < n; i++) {
@@ -158,7 +89,7 @@ int main(void) {
 
     int i;
     pthread_t tid[NUM_THREADS];
-    clock_t begin = clock();
+    gettimeofday(&time_begin, NULL);
     for (i = 0; i < NUM_THREADS; i++) {
         pthread_create(&tid[i], NULL, thread_functions, NULL);
     }
@@ -166,13 +97,9 @@ int main(void) {
     for (i = 0; i < NUM_THREADS; i++) {
         pthread_join(tid[i], NULL);
     }
-    clock_t end = clock();
-    double execution_time = (double)(end - begin) / CLOCKS_PER_SEC;
-
+    gettimeofday(&time_end, NULL);
+    printf("Execution time of mutex is : %.6f secs\n", CalcTime(time_begin, time_end));
     printf("%d,%d,%d\n", countMemberOp, countInsertOp, countDeleteOp);
-    printf("%lf",execution_time);
-
-
     return 0;
 }
 
