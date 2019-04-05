@@ -1,1 +1,4 @@
-for n in {1..100}; do ./rwlock; done
+for (( c=1; c<=$1; c++ ))
+do  
+   $2
+done
