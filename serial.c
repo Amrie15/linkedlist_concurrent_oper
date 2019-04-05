@@ -84,20 +84,19 @@ double getExecutionTime(struct timeval time_begin, struct timeval time_end) {
     return (double) (time_end.tv_usec - time_begin.tv_usec) / 1000000 + (double) (time_end.tv_sec - time_begin.tv_sec);
 }
 
-int main() {
+int main(int argc, char** argv) {
     struct list_node_s *head = NULL;
     struct timeval time_begin, time_end;
 
-    int const n = 1000;
-    int const m = 10000;
+    int const n = atoi(argv[1]);
+    int const m = atoi(argv[2]);
 
 
 
 
-    float mMember = 0.99;
-    float mInsert = 0.005;
-    float mDelete = 0.005;
-
+    float mMember = atof(argv[3]);
+    float mInsert = atof(argv[4]);
+    float mDelete = atof(argv[5]);
 
 
     int countMemberOp = 0;
