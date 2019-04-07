@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
     }
     gettimeofday(&time_end, NULL);
 //    printf("Execution time of serial v : %.6f secs\n", getExecutionTime(time_begin, time_end));
-    printf("%.6f\n", getExecutionTime(time_begin, time_end)*100);
+    printf("%.6f\n", getExecutionTime(time_begin, time_end));
 //    printf("%d,%d,%d \n", countMemberOp, countInsertOp, countDeleteOp);
 
 
