@@ -8,7 +8,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <sys/time.h>
-#define NUM_THREADS 4
+//#define NUM_THREADS 4
 
 
 struct list_node_s {
@@ -145,13 +145,14 @@ void *thread_functions(void *arg) {
     }
 }
 
-int main(void) {
-    n = 1000;
-    m = 10000;
+int main(int argc, char** argv) {
+    int NUM_THREADS =atoi(argv[6]);
+    n = atoi(argv[1]);
+    m = atoi(argv[2]);
     //TODO: get user input to get the percentage
-    mMember = 0.99;
-    mInsert = 0.005;
-    mDelete = 0.005;
+    mMember = atof(argv[3]);
+    mInsert = atof(argv[4]);
+    mDelete = atof(argv[5]);
 
     max_range = pow(2, 16);
     struct timeval time_begin, time_end;
